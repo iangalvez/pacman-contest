@@ -129,9 +129,6 @@ class ReflexCaptureAgent(CaptureAgent):
         Normally, weights do not depend on the gamestate.  They can be either
         a counter or a dictionary.
         """
-        foodList = self.getFood(gameState).asList()
-        fooddefenseList = self.getFoodYouAreDefending(gameState).asList()
-
         if gameState.getScore() > 0:
             return {'numInvaders': -1000, 'invaderDistance': -10}
         else:
