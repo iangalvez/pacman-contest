@@ -35,7 +35,6 @@ def createTeam(firstIndex, secondIndex, isRed,
     any extra arguments, so you should make sure that the default
     behavior is what you want for the nightly contest.
     """
-    # return [eval(first)(firstIndex), eval(second)(secondIndex)]
     return [ReflexCaptureAgent(firstIndex), ReflexCaptureAgent(secondIndex)]
 
 ##########
@@ -66,10 +65,10 @@ class ReflexCaptureAgent(CaptureAgent):
         index_of_best_value = action_values.index(best_value)
         return legal_actions[index_of_best_value]
 
-        # # You can profile your evaluation time by uncommenting these lines
-        # # start = time.time()
+        # You can profile your evaluation time by uncommenting these lines
+        # start = time.time()
         # values = [self.evaluate(gameState, a) for a in actions]
-        # # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
+        # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
     def evaluate(self, gameState):
         """
@@ -80,15 +79,12 @@ class ReflexCaptureAgent(CaptureAgent):
         return features * weights
 
     def getFeatures(self, gameState):
-
         # OFFENSIVE FEATURES
-
         features = util.Counter()
         foodList = self.getFood(gameState).asList()
         features['successorScore'] = len(foodList)  # self.getScore(successor)
 
         # Compute distance to the nearest food
-
         if len(foodList) > 0:  # This should always be True,  but better safe than sorry
             myPos = gameState.getAgentState(self.index).getPosition()
             minDistance = min([self.getMazeDistance(myPos, food) for food in foodList])
@@ -110,14 +106,12 @@ class ReflexCaptureAgent(CaptureAgent):
             else:
                 features['DeadEnd'] = 0
 
-
         if gameState.getScore() > 2:
             features['getback'] = 1
         else:
             features['getback'] = 0
 
         # DEFENSIVE FEATURES
-
         enemies = [gameState.getAgentState(i) for i in self.getOpponents(gameState)]
         invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
         features['numInvaders'] = len(invaders)
@@ -127,8 +121,6 @@ class ReflexCaptureAgent(CaptureAgent):
 
         fooddefenseList = self.getFoodYouAreDefending(gameState).asList()
         features['savefood'] = len(fooddefenseList)  # self.getScore(successor)
-
-
 
         return features
 
@@ -144,9 +136,6 @@ class ReflexCaptureAgent(CaptureAgent):
             return {'numInvaders': -1000, 'invaderDistance': -10}
         else:
             return {'successorScore': -100, 'distanceToFood': -1, 'numInvaders': -100, 'invaderDistance': -10}
-
-
-
 
     def get_value(self, state, depth, index):
         if index == min(self.getTeam(state)):
