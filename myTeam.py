@@ -26,7 +26,6 @@ def createTeam(firstIndex, secondIndex, isRed,
     team, initialized using firstIndex and secondIndex as their agent
     index numbers.  isRed is True if the red team is being created, and
     will be False if the blue team is being created.
-
     As a potentially helpful development aid, this function can take
     additional string-valued keyword arguments ("first" and "second" are
     such arguments in the case of this function), which will come from
@@ -80,9 +79,15 @@ class ReflexCaptureAgent(CaptureAgent):
 
     def getFeatures(self, gameState):
         # OFFENSIVE FEATURES
+        # ourTeamFoodCount - length of the food list
+        # distanceToFood - which is the maze distance to the closest food
+        # numGhosts - number of ghosts
+        # ghostDistance - distance to the closest ghost
+        # deadEnd - if in the next state you get into a dead end, don't go inside
+        # getback - make him return after you've eaten enough pellets
         features = util.Counter()
         foodList = self.getFood(gameState).asList()
-        features['successorScore'] = len(foodList)  # self.getScore(successor)
+        features['enemyTeamFoodCount'] = len(foodList)  # self.getScore(successor)
 
         # Compute distance to the nearest food
         if len(foodList) > 0:  # This should always be True,  but better safe than sorry
@@ -92,7 +97,7 @@ class ReflexCaptureAgent(CaptureAgent):
 
         enemies = [gameState.getAgentState(i) for i in self.getOpponents(gameState)]
         ghosts = [a for a in enemies if a.isPacman and a.getPosition() != None]
-        features['numghosts'] = len(ghosts)
+        features['numGhosts'] = len(ghosts)
         if len(ghosts) > 0:
             dists = [self.getMazeDistance(myPos, a.getPosition()) for a in ghosts]
             features['ghostDistance'] = min(dists)
@@ -102,15 +107,16 @@ class ReflexCaptureAgent(CaptureAgent):
             ghost_dist = [self.getMazeDistance(myPos, a.getPosition()) for a in ghosts]
             min_ghost_dist = min(ghost_dist)
             if len(escape) == 1 and min_ghost_dist < 4:
-                features['DeadEnd'] = 1
+                features['deadEnd'] = 1
             else:
-                features['DeadEnd'] = 0
-
+                features['deadEnd'] = 0
+        '''
         if gameState.getScore() > 2:
-            features['getback'] = 1
+            features['getBack'] = 1
         else:
-            features['getback'] = 0
-
+            features['getBack'] = 0
+        '''
+        
         # DEFENSIVE FEATURES
         enemies = [gameState.getAgentState(i) for i in self.getOpponents(gameState)]
         invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
@@ -119,8 +125,8 @@ class ReflexCaptureAgent(CaptureAgent):
             dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
             features['invaderDistance'] = min(dists)
 
-        fooddefenseList = self.getFoodYouAreDefending(gameState).asList()
-        features['savefood'] = len(fooddefenseList)  # self.getScore(successor)
+        foodDefenseList = self.getFoodYouAreDefending(gameState).asList()
+        features['ourTeamFoodCount'] = len(foodDefenseList)  # self.getScore(successor)
 
         return features
 
@@ -129,10 +135,13 @@ class ReflexCaptureAgent(CaptureAgent):
         Normally, weights do not depend on the gamestate.  They can be either
         a counter or a dictionary.
         """
-        if gameState.getScore() > 0:
-            return {'numInvaders': -1000, 'invaderDistance': -10}
-        else:
-            return {'successorScore': -100, 'distanceToFood': -1, 'numInvaders': -100, 'invaderDistance': -10}
+
+        if gameState.getScore() > 0:  # defense
+            return {'numInvaders': -1000, 'invaderDistance': -10, 'ourTeamFoodCount': 100}
+        else:                         # offense
+            return {'enemyTeamFoodCount': -100, 'distanceToFood': -1, 'numInvaders': -100,
+                    'invaderDistance': -10, 'deadEnd': -10000, 'ghostDistance': -10,
+                    'numGhosts': -100}
 
     def get_value(self, state, depth, index):
         if index == min(self.getTeam(state)):
